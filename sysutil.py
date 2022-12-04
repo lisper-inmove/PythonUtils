@@ -10,7 +10,14 @@ class Sysutil:
 
         @key: 会被转换成全大写
         """
-        return os.environ.get(key.upper())
+        value = os.environ.get(key.upper())
+        if value is None:
+            return value
+        if value.upper() == "TRUE":
+            return True
+        if value.upper() == "FALSE":
+            return False
+        return value
 
     def __setattr__(self, key: str, value: str) -> None:
         os.environ[key.upper()] = str(value)
