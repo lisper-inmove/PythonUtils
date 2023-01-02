@@ -3,7 +3,6 @@
 """日志处理模块."""
 
 import logging
-import uuid
 from logging.handlers import SysLogHandler
 
 from .sys_env import SysEnv
@@ -12,9 +11,9 @@ from .sys_env import SysEnv
 class Logger(logging.Logger):
     """日志处理类."""
 
-    def __init__(self):
+    def __init__(self, message_uuid=None):
         """日志处理类初始化函数."""
-        self._message_uuid = uuid.uuid4()
+        self._messag_uuid = message_uuid
         name = SysEnv.get(SysEnv.APPNAME)
         if name is None:
             name = "Default"
@@ -27,6 +26,8 @@ class Logger(logging.Logger):
         self.__init_console_handler()
 
     def __wrap_message_with_uuid(self, message):
+        if self._message_uuid is None:
+            return message
         result = f"{self._message_uuid} - {message}"
         return result
 
