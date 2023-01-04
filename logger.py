@@ -13,7 +13,7 @@ class Logger(logging.Logger):
 
     def __init__(self, message_uuid=None):
         """日志处理类初始化函数."""
-        self._messag_uuid = message_uuid
+        self._message_uuid = message_uuid
         name = SysEnv.get(SysEnv.APPNAME)
         if name is None:
             name = "Default"
