@@ -1,0 +1,23 @@
+#+STARTUP: indent
+
+* idate
+#+begin_verse
+日期相关的一些函数
+#+end_verse
+* logger
+#+begin_verse
+终端日志
+syslog
+#+end_verse
+* misc
+#+begin_verse
+1. 生成uuid
+#+end_verse
+* singleton
+#+begin_verse
+singleton的metaclass
+#+end_verse
+* sys_env
+#+begin_verse
+Python获取系统环境变量相关的操作
+#+end_verse
