@@ -1,0 +1,19 @@
+#+STARTUP: indent
+
+* idate
+日期相关的一些函数
+* logger
+终端日志
+syslog
+* misc
+1. 生成uuid
+* singleton
+singleton的metaclass
+* sys_env
+Python获取系统环境变量相关的操作
+#+begin_src python :results output :noweb yes :exports both
+  from sys_env import SysEnv
+
+  user = SysEnv.get("USER")
+  print(user)
+#+end_src
