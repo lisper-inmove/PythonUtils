@@ -11,9 +11,8 @@ from .sys_env import SysEnv
 class Logger(logging.Logger):
     """日志处理类."""
 
-    def __init__(self, message_uuid=None):
+    def __init__(self):
         """日志处理类初始化函数."""
-        self._message_uuid = message_uuid
         name = SysEnv.get(SysEnv.APPNAME)
         if name is None:
             name = "Default"
@@ -25,7 +24,15 @@ class Logger(logging.Logger):
         self.__init_syslog_handler()
         self.__init_console_handler()
 
+    def __set_message_uuid(self):
+        try:
+            from flask import request
+            self._message_uuid = request.headers.get("Message-Uuid")
+        except Exception:
+            self._message_uuid = None
+
     def __wrap_message_with_uuid(self, message):
+        self.__set_message_uuid()
         if self._message_uuid is None:
             return message
         result = f"{self._message_uuid} - {message}"
