@@ -22,7 +22,10 @@ class ProtobufHelper:
     def to_json(data):
         if data is None:
             return None
-        return json_format.MessageToDict(data, including_default_value_fields=True)
+        return json_format.MessageToDict(
+            data, including_default_value_fields=True,
+            preserving_proto_field_name=True
+        )
 
     @staticmethod
     def batch_to_json(data):
