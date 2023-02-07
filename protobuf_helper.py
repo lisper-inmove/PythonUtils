@@ -22,6 +22,12 @@ class ProtobufHelper:
     def to_json(data):
         if data is None:
             return None
+        if isinstance(data, str):
+            return data
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            return data
         return json_format.MessageToDict(
             data, including_default_value_fields=True,
             preserving_proto_field_name=True
