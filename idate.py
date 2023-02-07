@@ -23,8 +23,12 @@ class Weekday(IntEnum):
 class IDate:
 
     @classmethod
-    def timestamp(cls) -> int:
+    def now_timestamp(cls) -> int:
         return int(datetime.now().timestamp())
+
+    @classmethod
+    def now_millseconds(cls) -> int:
+        return datetime.now().timestamp()
 
     @classmethod
     def today_zero_date(

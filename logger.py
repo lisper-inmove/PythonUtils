@@ -52,7 +52,13 @@ class Logger(logging.Logger):
         super().info(message)
 
     def exception(self, message):
-        """记录exception日志."""
+        """记录exception日志.
+
+        python3.9
+          super().exception底层调用的是 error 函数，默认会传exc_info参数过去，
+          会出现如下错误
+        TypeError: error() got an unexpected keyword argument 'exc_info'
+        """
         message = self.__wrap_message_with_uuid(message)
         super().exception(message)
 

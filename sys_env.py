@@ -18,10 +18,10 @@ class SysEnv:
     RUNTIME_ENVIRONMENT = "RUNTIME_ENVIRONMENT"
 
     @staticmethod
-    def get(key: str) -> str:
+    def get(key: str, default=None) -> str:
         key = key.upper()
         if key not in os.environ:
-            return None
+            return default
         value = os.environ[key]
         if value.upper() == "TRUE":
             return True
