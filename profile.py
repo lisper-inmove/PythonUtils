@@ -21,9 +21,9 @@ class FuncTimeExpend(TimeExpand):
         def inner(*args, **kargs):
             start_time_msec = IDate.now_millseconds()
             result = fn(*args, **kargs)
-            end_time_msec = IDate.now_millseconds()
-            logger.info(f"{self._prefix} {fn.__name__} 耗时 {end_time_msec - start_time_msec}毫秒")
-            if end_time_msec - start_time_msec > 0.5:
+            end_time_sec_msec = IDate.now_millseconds()
+            logger.info(f"{self._prefix} {fn.__name__} 耗时 {end_time_sec_msec - start_time_msec}毫秒")
+            if end_time_sec_msec - start_time_msec > 0.5:
                 logger.info(f"{self._prefix} {fn.__name__} 参数 {args} {kargs}")
             return result
         return inner
