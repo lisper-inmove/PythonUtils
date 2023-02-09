@@ -19,11 +19,11 @@ class FuncTimeExpend(TimeExpand):
     def __call__(self, fn):
         @wraps(fn)
         def inner(*args, **kargs):
-            start_time = IDate.now_millseconds()
+            start_time_msec = IDate.now_millseconds()
             result = fn(*args, **kargs)
-            finish_time = IDate.now_millseconds()
-            logger.info(f"{self._prefix} {fn.__name__} 耗时 {finish_time - start_time}毫秒")
-            if finish_time - start_time > 0.5:
+            end_time_msec = IDate.now_millseconds()
+            logger.info(f"{self._prefix} {fn.__name__} 耗时 {end_time_msec - start_time_msec}毫秒")
+            if end_time_msec - start_time_msec > 0.5:
                 logger.info(f"{self._prefix} {fn.__name__} 参数 {args} {kargs}")
             return result
         return inner

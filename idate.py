@@ -71,19 +71,19 @@ class IDate:
     @classmethod
     def piecewise_time(
             cls,
-            start_time: int,
-            end_time: int,
+            start_time_sec: int,
+            end_time_sec: int,
     ) -> List:
         """将时间分段.
 
         Args:
-            start_time: 时间戳,开始时间
-            end_time: 时间戳,结束时间
+            start_time_sec: 时间戳,开始时间
+            end_time_sec: 时间戳,结束时间
         Returns:
-            [(start_time, a), (b, c), (d, e), (f, end_time)]: a~f 分别表示0
+            [(start_time_sec, a), (b, c), (d, e), (f, end_time_sec)]: a~f 分别表示0
         Examples:
-            start_time 表示 2022-10-12 12:30:39
-            end_time 表示 2022-10-14 08:08:19
+            start_time_sec 表示 2022-10-12 12:30:39
+            end_time_sec 表示 2022-10-14 08:08:19
             [
                 ("2022-10-12 12:30:39", "2022-10-13 00:00:00"),
                 ("2022-10-13 00:00:00", "2022-10-14 00:00:00"),
@@ -91,16 +91,16 @@ class IDate:
             ]
 
         """
-        start_date = datetime.fromtimestamp(start_time)
-        end_date = datetime.fromtimestamp(end_time)
+        start_date = datetime.fromtimestamp(start_time_sec)
+        end_date = datetime.fromtimestamp(end_time_sec)
         delta_days = (end_date - start_date).days
-        # start_time, end_time都表示在一天之内
+        # start_time_sec, end_time_sec都表示在一天之内
         if delta_days == 0:
-            return [(start_time, end_time)]
+            return [(start_time_sec, end_time_sec)]
         result = []
         first_zero = start_date.replace(hour=0, minute=0, second=0) + timedelta(1)
         last_zero = end_date.replace(hour=0, minute=0, second=0)
-        result.append((start_time, int(first_zero.timestamp())))
+        result.append((start_time_sec, int(first_zero.timestamp())))
         begin_day = first_zero
         for i in range(0, delta_days):
             begin_day = begin_day + timedelta(1)
@@ -108,7 +108,7 @@ class IDate:
             result.append(
                 (int(begin_day.timestamp()), int(end_day.timestamp()))
             )
-        result.append((int(last_zero.timestamp()), end_time))
+        result.append((int(last_zero.timestamp()), end_time_sec))
         return result
 
     def __init__(
