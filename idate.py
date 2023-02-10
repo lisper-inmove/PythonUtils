@@ -22,6 +22,11 @@ class Weekday(IntEnum):
 
 class IDate:
 
+    ONE_SEC = 1
+    ONE_MIN = 60 * ONE_SEC
+    ONE_HOUR = 60 * ONE_MIN
+    ONE_DAY = 24 * ONE_HOUR
+
     @classmethod
     def now_timestamp(cls) -> int:
         return int(datetime.now().timestamp())
