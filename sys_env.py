@@ -6,6 +6,7 @@ import os
 class SysEnv:
 
     APPNAME = 'APPNAME'
+    APPROOT = 'APPROOT'
     # console
     LOGGER_ENABLE_CONSOLE = "LOGGER_ENABLE_CONSOLE"
     # SYSLOG
