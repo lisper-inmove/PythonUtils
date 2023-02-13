@@ -3,6 +3,7 @@
 """日志处理模块."""
 
 import logging
+import traceback
 from logging.handlers import SysLogHandler
 
 from .sys_env import SysEnv
@@ -61,6 +62,12 @@ class Logger(logging.Logger):
         """
         message = self.__wrap_message_with_uuid(message)
         super().exception(message)
+
+    def traceback(self, e, msg=None):
+        if msg is not None:
+            self.info(msg)
+        self.info(str(e))
+        self.info(traceback.print_tb(e.__traceback__))
 
     def error(self, message):
         """记录错误日志."""
