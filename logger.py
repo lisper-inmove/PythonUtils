@@ -66,7 +66,7 @@ class Logger(logging.Logger):
     def traceback(self, e, msg=None):
         if msg is not None:
             self.info(msg)
-        self.info(str(e))
+        self.info(f"=======>>> Traceback Info {str(e)} <<<========")
         self.info(traceback.print_tb(e.__traceback__))
 
     def error(self, message):
