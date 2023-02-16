@@ -7,6 +7,7 @@ import traceback
 from logging.handlers import SysLogHandler
 
 from .sys_env import SysEnv
+from .color_printer import ColorPrinter
 
 
 class Logger(logging.Logger):
@@ -64,7 +65,8 @@ class Logger(logging.Logger):
     def traceback(self, e, msg=None):
         if msg is not None:
             self.info(msg)
-        self.info(f"=======>>> Traceback Info {str(e)} <<<========")
+        color_value = ColorPrinter.red_value(f"=======>>> Traceback Info {str(e)} <<<========")
+        self.info(color_value)
         self.info(traceback.print_tb(e.__traceback__))
 
     def error(self, message):
