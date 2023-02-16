@@ -10,7 +10,6 @@ from .sys_env import SysEnv
 
 
 class Logger(logging.Logger):
-    """日志处理类."""
 
     def __init__(self):
         """日志处理类初始化函数."""
@@ -48,7 +47,6 @@ class Logger(logging.Logger):
         super().debug(message)
 
     def info(self, message):
-        """记录info日志."""
         message = self.__wrap_message_with_uuid(message)
         super().info(message)
 
