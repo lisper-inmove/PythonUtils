@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 import jwt
 
 from .idate import IDate
@@ -32,7 +34,9 @@ class JWTUtil:
         payload.update({
             'create_time': IDate.now_timestamp(),
             'expire_at': IDate.now_timestamp() + IDate.ONE_HOUR * 2,
-            'need_login': False
+            'need_login': False,
+            'random_value1': random.randint(1, 999999), # 增加两个随机数，减少生成相同token的概率
+            'random_value2': random.randint(1, 999999)
         })
         token = jwt.encode(
             payload=payload,
