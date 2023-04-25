@@ -36,3 +36,5 @@ class ColorPrinter:
 if __name__ == '__main__':
     value = "这是一个测试"
     print(ColorPrinter.color_value(ColorPrinter.HEADER, value))
+    print(ColorPrinter.red_value(value))
+    print(ColorPrinter.green_value(value))
