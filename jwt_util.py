@@ -28,14 +28,14 @@ class JWTUtil:
     }
     salt = "c30002929a1314f4e7cb105d9482d44b"
 
-    TOKEN_VALID_TIME_PERIOD = IDate.now_timestamp() + IDate.ONE_HOUR * 2
+    TOKEN_VALID_TIME_PERIOD = IDate.ONE_HOUR * 2
 
     def generate_token(self, payload: dict) -> str:
         if not isinstance(payload, dict):
             raise PayloadNotDictException()
         payload.update({
             'create_time': IDate.now_timestamp(),
-            'expire_at': self.TOKEN_VALID_TIME_PERIOD,
+            'expire_at': IDate.now_timestamp() + self.TOKEN_VALID_TIME_PERIOD,
             'need_login': False,
             'random_value1': random.randint(1, 999999), # 增加两个随机数，减少生成相同token的概率
             'random_value2': random.randint(1, 999999)
