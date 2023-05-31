@@ -36,6 +36,10 @@ class IDate:
         return datetime.now().timestamp()
 
     @classmethod
+    def now_withformat(cls, fmt="%Y-%m-%d %H:%M:%S"):
+        return datetime.now().strftime(fmt)
+
+    @classmethod
     def today_zero_date(
             cls,
             tz: str = None,

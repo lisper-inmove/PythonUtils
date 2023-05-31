@@ -17,6 +17,8 @@ class SysEnv:
     LOGGER_LEVEL = "LOGGER_LEVEL"
     # 项目运行环境
     RUNTIME_ENVIRONMENT = "RUNTIME_ENVIRONMENT"
+    # 项目的域名
+    DOMAIN = "DOMAIN"
 
     @staticmethod
     def get(key: str, default=None) -> str:
