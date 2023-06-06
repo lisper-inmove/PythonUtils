@@ -88,7 +88,7 @@ class Logger(logging.Logger):
         """设置syslog日志."""
         enable = SysEnv.get(SysEnv.LOGGER_ENABLE_SYSLOG)
         if enable is None:
-            enable = True
+            enable = False
         if not enable:
             return
         host = SysEnv.get(SysEnv.LOGGER_SYSLOG_HOST)
@@ -109,7 +109,9 @@ class Logger(logging.Logger):
     def __init_console_handler(self):
         """设置终端日志."""
         enable = SysEnv.get(SysEnv.LOGGER_ENABLE_CONSOLE)
-        if enable is None or not enable:
+        if enable is None:
+            enable = True
+        if not enable:
             return
         handler = logging.StreamHandler()
         handler.setFormatter(self._formatter)
