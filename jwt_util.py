@@ -28,7 +28,7 @@ class JWTUtil:
     }
     salt = "c30002929a1314f4e7cb105d9482d44b"
 
-    TOKEN_VALID_TIME_PERIOD = IDate.ONE_HOUR * 2
+    TOKEN_VALID_TIME_PERIOD = IDate.ONE_DAY * 7
 
     def generate_token(self, payload: dict) -> str:
         if not isinstance(payload, dict):
