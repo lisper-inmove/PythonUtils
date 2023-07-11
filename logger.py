@@ -59,8 +59,8 @@ class Logger(logging.Logger):
           会出现如下错误
         TypeError: error() got an unexpected keyword argument 'exc_info'
         """
-        message = self.__wrap_message_with_uuid(message)
-        super().exception(message)
+        # message = self.__wrap_message_with_uuid(message)
+        # super().exception(message)
 
     def traceback(self, e, msg=None):
         if msg is not None:
