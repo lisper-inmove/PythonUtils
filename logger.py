@@ -77,7 +77,7 @@ class Logger(logging.Logger):
     def warning(self, message):
         """记录警告日志."""
         message = self.__wrap_message_with_uuid(message)
-        self.logger.warning(message)
+        super().warning(message)
 
     def fatal(self, message):
         """记录致命日志."""
