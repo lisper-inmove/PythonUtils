@@ -32,7 +32,7 @@ class IDate:
         return int(datetime.now().timestamp())
 
     @classmethod
-    def now_millseconds(cls) -> int:
+    def now_milliseconds(cls) -> int:
         return datetime.now().timestamp()
 
     @classmethod
