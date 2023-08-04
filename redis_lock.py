@@ -76,6 +76,16 @@ class MyRedlock:
     end
     """
 
+    """
+    `CLOCK_DRIFT_FACTOR`在分布式锁算法中用于考虑可能的时钟漂移。在分布式系统中，各个节点的时钟可能不完全同步。这种时钟漂移可能会影响锁的正确性和可靠性。
+    在这个RedLock实现中，`CLOCK_DRIFT_FACTOR`被设置为0.01，意味着算法允许1%的时钟漂移。这个值是一个折衷，用于在可靠性和性能之间平衡。
+    - 如果你设置一个较小的值，例如0.001，那么算法将对时钟漂移更为敏感。这可能会增加锁获取失败的概率，特别是在时钟同步不精确的环境中。
+    - 如果你设置一个较大的值，那么算法将更宽容于时钟漂移。这可能会增加锁的可用性，但也可能降低锁的可靠性，因为时钟漂移可能会导致锁被意外释放或延长。
+    1%的时钟漂移因子是一个合理的默认值，适用于许多常见的使用场景。然而，在具体的应用中，你可能需要根据你的系统的特点和需求来调整这个值。
+    如果你的系统的时钟同步非常精确，你可能可以使用一个较小的值。如果时钟同步不精确，或者你更关心锁的可用性而不是严格的一致性，你可能需要使用一个较大的值。
+    """
+    CLOCK_DRIFT_FACTOR = 0.01
+
     def __init__(self, connectionList, retryCount=None, retryDelay=None):
         self.__init_servers(connectionList)
         self.retryCount = retryCount
@@ -101,13 +111,18 @@ class MyRedlock:
         lock = Lock(key, value, ttl)
         while retry < self.retryCount:
             successCount = 0
+            startTime = time.monotonic()
             for server in self.servers:
                 try:
                     flag = server.set(key, value, nx=True, px=ttl)
                     successCount += 1 if flag else 0
                 except Exception as ex:
                     logger.info(f"lock exception: {ex}")
-            if successCount >= self.quorum:
+            endTime = time.monotonic()
+            elapsedMilliseconds = (endTime - startTime) * 10**3
+            drift = (ttl * self.CLOCK_DRIFT_FACTOR) + 2
+            validity = ttl - (elapsedMilliseconds + drift)
+            if validity > 0 and successCount >= self.quorum:
                 return lock
             else:
                 self.__unlock(lock)
