@@ -1,8 +1,8 @@
 import time
 import json
-from contextlib import contextmanager
+import asyncio
 
-import redis
+from redis import asyncio as aioredis
 
 from .sys_env import SysEnv
 from .logger import Logger
@@ -11,52 +11,87 @@ from .idate import IDate
 logger = Logger()
 
 
-@contextmanager
-def redislock(key, value=None, ttl=None, retryCount=None, retryDelay=None):
-    """
-    ttl: 秒
-    retryDelay: 秒
-    retryCount: 尝试次数
-    """
-    if ttl is None:
-        ttl = 5
-    configs = SysEnv.get("REDIS_LOCK_CONFIG", "")
-    configs = configs.split(":")
-    redisServer = []
-    for config in configs:
-        config = config.split(",")
-        password = None
-        if len(config) == 3:
-            password = config[2]
-        redisServer.append({
-            "host": config[0],
-            "port": int(config[1]),
-            "password": password,
-            "db": 0
-        })
-    ttl = ttl * 1000
-    rlk = MyRedlock(
-        redisServer,
-        retryCount=retryCount,
-        retryDelay=retryDelay
-    )
-    if not isinstance(value, dict):
-        value = {"data": value}
-    value.update({"start": IDate.now_milliseconds()})
-    value = json.dumps(value)
-    lock = rlk.lock(key, value, ttl)
-    yield lock
-    if lock:
-        rlk.unlock(lock)
+class Redislock:
+
+    def __init__(self, key, value=None, ttl=None, retryCount=None, retryDelay=None):
+        """
+        ttl: 秒
+        retryDelay: 秒
+        retryCount: 尝试次数
+
+        >>> async with Redislock("my-test-lock", ttl=30, retryCount=10, retryDelay=0.2) as lock:
+        >>>     if not lock:
+        >>>         raise Exception("acquire lock failed")
+        >>>     dosomething()
+        """
+        if ttl is None:
+            ttl = 5
+        self.key = key
+        self.value = value
+        self.ttl = ttl * 1000
+        if retryCount is None:
+            retryCount = 5
+        self.retryCount = retryCount
+        if retryDelay is None:
+            retryDelay = 0.2
+        self.retryDelay = retryDelay
+
+    async def __aenter__(self):
+        configs = SysEnv.get("REDIS_LOCK_CONFIG", "")
+        configs = configs.split(":")
+        redisServer = []
+        for config in configs:
+            config = config.split(",")
+            password = None
+            if len(config) == 3:
+                password = config[2]
+            redisServer.append({
+                "host": config[0],
+                "port": int(config[1]),
+                "password": password,
+                "db": 0
+            })
+        self.rlk = await MyRedlock(
+            retryCount=self.retryCount,
+            retryDelay=self.retryDelay
+        ).create(redisServer)
+        self.lock = await self.rlk.lock(self.key, self.value, self.ttl)
+        return self.lock
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if self.lock:
+            await self.rlk.unlock(self.lock)
 
 
 class Lock:
 
-    def __init__(self, key, value, ttl):
+    def __init__(self, key, data, ttl, startTime=None):
         self.key = key
-        self.value = value
+        self.data = data
         self.ttl = ttl
-        self.startTime = IDate.now_milliseconds()
+        if startTime is None:
+            startTime = IDate.now_milliseconds()
+        self.startTime = startTime
+
+    @property
+    def value(self):
+        value = {
+            "key": self.key,
+            "data": self.data,
+            "ttl": self.ttl,
+            "startTime": self.startTime
+        }
+        return json.dumps(value)
+
+    @classmethod
+    def from_json(cls, data):
+        json_data = json.loads(data)
+        return cls(
+            json_data.get("key"),
+            json_data.get("data"),
+            json_data.get("ttl"),
+            json_data.get("startTime")
+        )
 
 
 class MyRedlock:
@@ -86,16 +121,19 @@ class MyRedlock:
     """
     CLOCK_DRIFT_FACTOR = 0.01
 
-    def __init__(self, connectionList, retryCount=None, retryDelay=None):
-        self.__init_servers(connectionList)
+    def __init__(self, retryCount=None, retryDelay=None):
         self.retryCount = retryCount
         self.retryDelay = retryDelay
 
-    def __init_servers(self, connectionList):
+    async def create(self, connectionList):
+        await self.__init_servers(connectionList)
+        return self
+
+    async def __init_servers(self, connectionList):
         self.servers = []
         for connection in connectionList:
             try:
-                server = redis.StrictRedis(**connection)
+                server = await aioredis.StrictRedis(**connection)
                 server._release_script = server.register_script(self.unlock_script)
                 server._renewal_script = server.register_script(self.renewal_script)
                 self.servers.append(server)
@@ -106,7 +144,7 @@ class MyRedlock:
         if len(self.servers) < self.quorum:
             raise Exception("Failed to connect to the majority of redis servers")
 
-    def lock(self, key, value, ttl):
+    async def lock(self, key, value, ttl):
         retry = 0
         lock = Lock(key, value, ttl)
         while retry < self.retryCount:
@@ -114,38 +152,42 @@ class MyRedlock:
             startTime = time.monotonic()
             for server in self.servers:
                 try:
-                    flag = server.set(key, value, nx=True, px=ttl)
+                    flag = await server.set(lock.key, lock.value, nx=True, px=ttl)
                     successCount += 1 if flag else 0
+                except asyncio.CancelledError as ex:
+                    logger.info(f"operation cancelled: {ex}")
                 except Exception as ex:
                     logger.info(f"lock exception: {ex}")
             endTime = time.monotonic()
-            elapsedMilliseconds = (endTime - startTime) * 10**3
+            elapsedMilliseconds = (endTime - startTime) * (10 ** 3)
             drift = (ttl * self.CLOCK_DRIFT_FACTOR) + 2
             validity = ttl - (elapsedMilliseconds + drift)
             if validity > 0 and successCount >= self.quorum:
                 return lock
             else:
-                self.__unlock(lock)
+                await self.__unlock(lock)
                 retry += 1
-                time.sleep(self.retryDelay)
+                await asyncio.sleep(self.retryDelay)
         return None
 
-    def unlock(self, lock):
-        self.__unlock(lock)
+    async def unlock(self, lock):
+        await self.__unlock(lock)
 
-    def __unlock(self, lock):
+    async def __unlock(self, lock):
         for server in self.servers:
             try:
-                server._release_script(keys=[lock.key], args=[lock.value])
+                await server._release_script(keys=[lock.key], args=[lock.value])
             except Exception as ex:
                 logger.info(f"__unlock exception: {ex}")
 
-    def query_lock(self, lock):
+    async def query_lock(self, key):
         for server in self.servers:
-            return server.get(lock.key)
+            value = await server.get(key)
+            if value:
+                return Lock.from_json(value)
 
-    def renewal(self, lock):
+    async def renewal(self, lock):
         if IDate.now_milliseconds() - lock.startTime < lock.ttl / 2:
             return
         for server in self.servers:
-            server._renewal_script(keys=[lock.key], args=[lock.value, lock.ttl])
+            await server._renewal_script(keys=[lock.key], args=[lock.value, lock.ttl])
