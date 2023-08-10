@@ -38,13 +38,11 @@ class Redislock:
 
     async def __aenter__(self):
         configs = SysEnv.get("REDIS_LOCK_CONFIG", "")
+        password = SysEnv.get("REDIS_LOCK_PASSWORD")
         configs = configs.split(":")
         redisServer = []
         for config in configs:
             config = config.split(",")
-            password = None
-            if len(config) == 3:
-                password = config[2]
             redisServer.append({
                 "host": config[0],
                 "port": int(config[1]),
