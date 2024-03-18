@@ -1,7 +1,7 @@
 import aiohttp
-import asyncio
+import fitz
 
-async def download_pdf_async(url, filename):
+async def download_pdf_async(url: str, filename: str):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
@@ -16,3 +16,10 @@ async def download_pdf_async(url, filename):
             else:
                 raise Exception(f"Failed to download PDF, status code: {response.status}")
 
+
+def read_pdf_sync(pdf_path: str):
+    contents = []
+    with fitz.open(pdf_path) as doc:
+        for page in doc:
+            contents.append(page.get_text())
+    return contents
