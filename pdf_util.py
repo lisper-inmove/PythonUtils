@@ -33,21 +33,30 @@ def read_pdf_sync(pdf_path: str):
     return contents
 
 def read_pdf_sync_v2(pdf_path: str):
+    content = ""
     with open(pdf_path, "rb") as file:
         reader = PyPDF2.PdfReader(file)
         for page in reader.pages:
-            print(page)
+            content += page.extract_text()
+    return content
 
 def read_pdf_sync_v3(pdf_path: str):
     reader = PdfReader(pdf_path)
     contents = []
     curContent = ""
-    for page in reader.pages:
+    for index, page in enumerate(reader.pages):
         curContent += page.extract_text()
         if len(curContent) >= 2000:
             contents.append(curContent)
             curContent = ""
     return contents
+
+def read_pdf_sync_v4(pdf_path: str):
+    reader = PdfReader(pdf_path)
+    content = ""
+    for page in reader.pages:
+        content += page.extract_text()
+    return content
 
 
 if __name__ == "__main__":
@@ -63,4 +72,3 @@ if __name__ == "__main__":
     server = main()
     asyncio.get_event_loop().run_until_complete(server)
     asyncio.get_event_loop().run_forever()
-
