@@ -33,7 +33,7 @@ class IDate:
 
     @classmethod
     def now_milliseconds(cls) -> int:
-        return datetime.now().timestamp()
+        return datetime.now().timestamp() * 1000
 
     @classmethod
     def now_withformat(cls, fmt="%Y-%m-%d %H:%M:%S"):
